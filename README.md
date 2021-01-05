@@ -1,5 +1,14 @@
 # signalgo
-A Go implementation for communication over the signal messenger via dbus and [AsamK/signal-cli](https://github.com/AsamK/signal-cli)
+A Go implementation for communication over the signal messenger with the help of [AsamK/signal-cli](https://github.com/AsamK/signal-cli).
+
+There are currently some limitations when using the dbus connection method, as the dbus implementation of signal-cli is still experimental. Those are e.g.:
+* Registered as normal messages without any text:
+	* Remote delete messages
+	* Group changes
+* Setting registration pin is not supported
+* ...
+
+One should use the CLI connection method if those information and features are required.
 
 # Install
 
@@ -14,7 +23,9 @@ Import this package with
 import "github.com/DerLukas15/signalgo"
 ```
 
-# Usage
+# Usage with DBus
+
+Run signal-cli as a deamon.
 
 Create a struct which satisfies the Event interface:
 
@@ -36,7 +47,7 @@ Now Initialize the package with the eventHandler and everything should work if t
 ```go
 func main() {
 	eventHandler := &eventHandler{}
-	conn, err := signalgo.New(true, eventHandler)
+	conn, err := signalgo.NewDBus(true, eventHandler)
 	if err != nil {
 		panic(err)
 	}
@@ -48,4 +59,4 @@ func main() {
 }
 ```
 
-See [Examples](_examples) for working implementations.
+See [GoDoc](https://pkg.go.dev/github.com/DerLukas15/signalgo) for examples.

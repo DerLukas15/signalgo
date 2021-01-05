@@ -1,19 +1,23 @@
 package signalgo
 
 import (
+	"errors"
+
 	dbus "github.com/godbus/dbus/v5"
 )
 
-func (conn *Connection) run() {
+func (conn *Connection) runViaDBus() {
 	if conn.running {
 		conn.logger.Debug("Already running")
 		return
+	}
+	if conn.connectionType != connectionDBus {
+		conn.logger.Error("This is not a dbus connection")
 	}
 	conn.running = true
 	defer func() { conn.running = false }()
 	conn.logger.Debug("Adding dbus signal listener")
 
-	conn.eventListener = make(chan bool)
 	err := conn.connection.AddMatchSignal(
 		dbus.WithMatchInterface("org.asamk.Signal"),
 		dbus.WithMatchObjectPath("/org/asamk/Signal"),
@@ -79,4 +83,51 @@ func (conn *Connection) run() {
 			}
 		}
 	}
+}
+
+func (conn *Connection) sendMessageDBus(target, message string, attachments []string) (int64, error) {
+	if !conn.running {
+		return 0, errors.New("Not running")
+	}
+	if !conn.connectionOK {
+		return 0, errors.New("connection not valid")
+	}
+	if conn.connectionType != connectionDBus {
+		return 0, errors.New("This is not a dbus connection")
+	}
+	if target == "" || message == "" {
+		return 0, errors.New("No Target or Message set")
+	}
+	conn.logger.Debug("Sending Message")
+	var body []interface{}
+	body = append(body, message)
+	body = append(body, attachments)
+	body = append(body, target)
+	msg := new(dbus.Message)
+	msg.Type = dbus.TypeMethodCall
+	msg.Flags = 0
+	msg.Headers = make(map[dbus.HeaderField]dbus.Variant)
+	msg.Headers[dbus.FieldPath] = dbus.MakeVariant(dbus.ObjectPath("/org/asamk/Signal"))
+	msg.Headers[dbus.FieldDestination] = dbus.MakeVariant("org.asamk.Signal")
+	msg.Headers[dbus.FieldMember] = dbus.MakeVariant("sendMessage")
+	msg.Headers[dbus.FieldInterface] = dbus.MakeVariant("org.asamk.Signal")
+	msg.Body = body
+	if len(body) > 0 {
+		msg.Headers[dbus.FieldSignature] = dbus.MakeVariant(dbus.SignatureOf(body...))
+	}
+	call := conn.connection.Send(msg, nil)
+	//Clear Call Thread
+	call.ContextCancel()
+	if call.Err != nil {
+		return 0, call.Err
+	}
+	serial := msg.Serial()
+	conn.logger.Debug("Message DBus serial: ", serial)
+	replyChan := make(chan *dbus.Message)
+	conn.lock.Lock()
+	conn.replies[serial] = replyChan
+	conn.lock.Unlock()
+	reply := <-replyChan
+	messageTimestamp := reply.Body[0].(int64)
+	return messageTimestamp, nil
 }

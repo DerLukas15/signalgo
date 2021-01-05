@@ -1,4 +1,8 @@
-package main
+// Copyright 2021 Lukas Gallandi. All rights reserved.
+// Use of this source code is governed by a
+// license that can be found in the LICENSE file.
+
+package signalgo_test
 
 import (
 	"errors"
@@ -19,9 +23,9 @@ func (eH *eventHandler) OnMessageRead(source string, messagetimestamp int64) err
 	return nil
 }
 
-func main() {
+func Example_systemDBus() {
 	eventHandler := &eventHandler{}
-	conn, err := signalMessenger.New(true, eventHandler)
+	conn, err := signalgo.NewDBus(true, eventHandler)
 	if err != nil {
 		panic(err)
 	}

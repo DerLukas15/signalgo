@@ -11,6 +11,7 @@
 package signalgo
 
 import (
+	"errors"
 	"sync"
 
 	dbus "github.com/godbus/dbus/v5"
@@ -23,11 +24,21 @@ type Event interface {
 	OnMessageRead(source string, messagetimestamp int64) error
 }
 
+type connectionTyp int64
+
+const (
+	connectionDBus connectionTyp = iota + 1
+	connectionCLI
+)
+
 // Connection is the main struct which stores necessary information and is used for
 // controlling and using the signalMessenger.
 type Connection struct {
-	connection   *dbus.Conn
-	connectionOK bool
+	connection     *dbus.Conn
+	executablePath string
+
+	connectionOK   bool
+	connectionType connectionTyp
 
 	eventHandler  Event
 	eventListener chan bool
@@ -40,14 +51,16 @@ type Connection struct {
 	lock sync.RWMutex
 }
 
-// New creates a new connection object and starts the necessary routines.
-// If no event handling is desired, nil can be used safely.
-func New(useSystembus bool, eventHandler Event) (conn *Connection, err error) {
+// NewDBus creates a new connection object which connects to signal-cli via DBus
+// and starts the necessary routines.
+func NewDBus(useSystembus bool, eventHandler Event) (conn *Connection, err error) {
 	conn = &Connection{
 		logger: logrus.WithFields(logrus.Fields{
-			"Routine": "signal",
+			"Routine": "signalViaDBus",
 		}),
-		replies: make(map[uint32]chan *dbus.Message),
+		replies:        make(map[uint32]chan *dbus.Message),
+		connectionType: connectionDBus,
+		eventListener:  make(chan bool),
 	}
 	if useSystembus {
 		conn.connection, err = dbus.SystemBus()
@@ -60,7 +73,35 @@ func New(useSystembus bool, eventHandler Event) (conn *Connection, err error) {
 	if eventHandler != nil {
 		conn.eventHandler = eventHandler
 	}
-	go conn.run()
+	go conn.runViaDBus()
+	return
+}
+
+// NewCLI creates a new connection object which connects to signal-cli via CLI
+// and starts the necessary routines. The executablePath should be absolute.
+func NewCLI(executablePath string, eventHandler Event) (conn *Connection, err error) {
+	conn = &Connection{
+		logger: logrus.WithFields(logrus.Fields{
+			"Routine": "signalViaCLI",
+		}),
+		replies:        make(map[uint32]chan *dbus.Message),
+		connectionType: connectionCLI,
+		executablePath: executablePath,
+		eventListener:  make(chan bool),
+	}
+
+	valid, err := commandValid(executablePath)
+	if err != nil {
+		return nil, err
+	}
+	if !valid {
+		return nil, errors.New("no permission to execute '" + executablePath + "'")
+	}
+	conn.connectionOK = true
+	if eventHandler != nil {
+		conn.eventHandler = eventHandler
+	}
+	go conn.runViaCLI()
 	return
 }
 
@@ -72,8 +113,16 @@ func (conn *Connection) SetEventHandler(eventHandler Event) (err error) {
 
 // SetLogger sets a new logger for the connection.
 func (conn *Connection) SetLogger(logger *logrus.Entry) (err error) {
+	var loggername string
+	loggername = "signalVia"
+	switch conn.connectionType {
+	case connectionCLI:
+		loggername += "CLI"
+	case connectionDBus:
+		loggername += "DBus"
+	}
 	conn.logger = logger.WithFields(logrus.Fields{
-		"Routine": "signal",
+		"Routine": loggername,
 	})
 	return
 }
