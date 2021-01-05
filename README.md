@@ -1,5 +1,12 @@
+[![Go Reference](https://pkg.go.dev/badge/github.com/DerLukas15/signalgo.svg)](https://pkg.go.dev/github.com/DerLukas15/signalgo)
+![GitHub](https://img.shields.io/github/license/DerLukas15/signalgo)
+![GitHub go.mod Go version (branch)](https://img.shields.io/github/go-mod/go-version/DerLukas15/signalgo/main)
+![GitHub last commit](https://img.shields.io/github/last-commit/DerLukas15/signalgo)
+![GitHub top language](https://img.shields.io/github/languages/top/DerLukas15/signalgo)
+![GitHub release (latest by date)](https://img.shields.io/github/v/release/DerLukas15/signalgo)
+
 # signalgo
-A Go implementation for communication over the signal messenger with the help of [AsamK/signal-cli](https://github.com/AsamK/signal-cli).
+A Go interface for communicating over the signal messenger with the help of [AsamK/signal-cli](https://github.com/AsamK/signal-cli).
 
 There are currently some limitations when using the dbus connection method, as the dbus implementation of signal-cli is still experimental. Those are e.g.:
 * Registered as normal messages without any text:
