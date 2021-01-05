@@ -48,4 +48,4 @@ func main() {
 }
 ```
 
-See [Examples](https://github.com/DerLukas15/signalMessenger/_examples) for working implementations.
+See [Examples](_examples) for working implementations.
