@@ -1,4 +1,4 @@
-// Package signalMessenger provides a dbus interface to talk to the signal-cli from https://github.com/AsamK/signal-cli.
+// Package signalgo provides a dbus interface to talk to the signal-cli from https://github.com/AsamK/signal-cli.
 //
 // Using DBus should be preferred as it guarantees fixed formating and type definitions.
 // Furthermore, more processes can use the signal-cli simultaneously when using the DBus implementation.
@@ -8,7 +8,7 @@
 // Copyright 2021 Lukas Gallandi. All rights reserved.
 // Use of this source code is governed by a
 // license that can be found in the LICENSE file.
-package signalMessenger
+package signalgo
 
 import (
 	"sync"

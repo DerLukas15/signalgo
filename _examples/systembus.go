@@ -4,7 +4,7 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/DerLukas15/signalMessenger"
+	"github.com/DerLukas15/signalgo"
 )
 
 type eventHandler struct{}

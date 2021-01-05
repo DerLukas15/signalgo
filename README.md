@@ -1,17 +1,17 @@
-# signalMessenger
+# signalgo
 A Go implementation for communication over the signal messenger via dbus and [AsamK/signal-cli](https://github.com/AsamK/signal-cli)
 
 # Install
 
 Get this package with
 ```bash
-go get gopkg.in/DerLukas15/signalMessenger.v0
+go get gopkg.in/DerLukas15/signalgo.v0
 ```
 
 Import this package with
 
 ```go
-import "gopkg.in/DerLukas15/signalMessenger.v0"
+import "github.com/DerLukas15/signalgo"
 ```
 
 # Usage
@@ -36,7 +36,7 @@ Now Initialize the package with the eventHandler and everything should work if t
 ```go
 func main() {
 	eventHandler := &eventHandler{}
-	conn, err := signalMessenger.New(true, eventHandler)
+	conn, err := signalgo.New(true, eventHandler)
 	if err != nil {
 		panic(err)
 	}

@@ -1,4 +1,4 @@
-module github.com/DerLukas15/signalMessenger
+module github.com/DerLukas15/signalgo
 
 go 1.15
 

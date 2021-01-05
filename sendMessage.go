@@ -1,4 +1,4 @@
-package signalMessenger
+package signalgo
 
 import (
 	"errors"
