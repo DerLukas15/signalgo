@@ -95,7 +95,7 @@ func (conn *Connection) sendMessageDBus(target, message string, attachments []st
 	if conn.connectionType != connectionDBus {
 		return 0, errors.New("This is not a dbus connection")
 	}
-	if target == "" || message == "" {
+	if target == "" || message == "" && len(attachments) == 0 {
 		return 0, errors.New("No Target or Message set")
 	}
 	conn.logger.Debug("Sending Message")
